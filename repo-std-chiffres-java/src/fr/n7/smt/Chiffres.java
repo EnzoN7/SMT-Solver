@@ -1,11 +1,11 @@
 package fr.n7.smt;
 
-import com.microsoft.z3.*;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+
+import com.microsoft.z3.*;
 
 /**
  * Classe qui implémente l'algorithme de BMC pour la partie "chiffres"
@@ -19,22 +19,34 @@ public class Chiffres {
      */
     private Context context;
 
-    /** Cache de constantes booléennes, indicé par leur nom. */
+    /**
+     * Cache de constantes booléennes, indicé par leur nom.
+     */
     private HashMap<String, BoolExpr> boolCache = new HashMap<>();
 
-    /** Cache de constantes booléennes, indicé par leur nom. */
+    /**
+     * Cache de constantes booléennes, indicé par leur nom.
+     */
     private HashMap<String, BitVecExpr> bvCache = new HashMap<>();
 
-    /** Cache de constantes booléennes, indicé par leur nom. */
+    /**
+     * Cache de constantes booléennes, indicé par leur nom.
+     */
     private HashMap<String, IntExpr> intCache = new HashMap<>();
 
-    /** Cache de constantes booléennes, indicé par leur nom. */
+    /**
+     * Cache de constantes booléennes, indicé par leur nom.
+     */
     private HashMap<String, ArrayExpr> arrayCache = new HashMap<>();
 
-    /** Nombre de bits de la représentation des bitvectors. */
+    /**
+     * Nombre de bits de la représentation des bitvectors.
+     */
     private int bvBits;
 
-    /** Sorte bitvector de taille bvBits. */
+    /**
+     * Sorte bitvector de taille bvBits.
+     */
     private Sort bvSort;
 
     /**
@@ -43,19 +55,29 @@ public class Chiffres {
      */
     private Sort bvArraySort;
 
-    /** Sorte des entiers mathématiques. */
+    /**
+     * Sorte des entiers mathématiques.
+     */
     private Sort intSort;
 
-    /** Constantes numériques pour le calcul du système de transition. */
+    /**
+     * Constantes numériques pour le calcul du système de transition.
+     */
     private int[] nums;
 
-    /** Valeur cible du calcul du système de transition. */
+    /**
+     * Valeur cible du calcul du système de transition.
+     */
     private int target;
 
-    /** Nombre maximum d'étapes de calcul du système de transition. */
+    /**
+     * Nombre maximum d'étapes de calcul du système de transition.
+     */
     private int maxNofSteps;
 
-    /** Si vrai alors interdiction d'overflow sur les operations bitvector. */
+    /**
+     * Si vrai alors interdiction d'overflow sur les operations bitvector.
+     */
     private boolean noOverflows;
     private BigInteger maxBvRange;
     private BigInteger minBvRange;
@@ -65,11 +87,11 @@ public class Chiffres {
      * contexte, sortes.
      */
     public Chiffres(int[] _nums, int _target, int _bvBits, boolean _noOverflows) {
-        nums        = _nums;
-        target      = _target;
-        bvBits      = _bvBits;
-        maxBvRange  = new BigInteger("2").pow(bvBits-1).subtract(new BigInteger("1"));
-        minBvRange  = new BigInteger("2").pow(bvBits-1).negate();
+        nums = _nums;
+        target = _target;
+        bvBits = _bvBits;
+        maxBvRange = new BigInteger("2").pow(bvBits - 1).subtract(new BigInteger("1"));
+        minBvRange = new BigInteger("2").pow(bvBits - 1).negate();
         maxNofSteps = 2 * nums.length - 1;
         noOverflows = _noOverflows;
 
@@ -77,14 +99,14 @@ public class Chiffres {
         cfg.put("model", "true");
         cfg.put("proof", "true");
 
-        context     = new Context(cfg);
-        intSort     = context.mkIntSort();
-        bvSort      = context.mkBitVecSort(bvBits);
+        context = new Context(cfg);
+        intSort = context.mkIntSort();
+        bvSort = context.mkBitVecSort(bvBits);
         bvArraySort = context.mkArraySort(intSort, bvSort);
-        boolCache   = new HashMap<>();
-        bvCache     = new HashMap<>();
-        intCache    = new HashMap<>();
-        arrayCache  = new HashMap<>();
+        boolCache = new HashMap<>();
+        bvCache = new HashMap<>();
+        intCache = new HashMap<>();
+        arrayCache = new HashMap<>();
     }
 
     /**
@@ -147,12 +169,16 @@ public class Chiffres {
         return res;
     }
 
-    /** Expression vraie ssi exactement une des exprs est vraie. */
+    /**
+     * Expression vraie ssi exactement une des exprs est vraie.
+     */
     private BoolExpr exactlyOne(BoolExpr... exprs) {
         return context.mkAnd(context.mkOr(exprs), atMostOne(exprs));
     }
 
-    /** Expression vraie ssi au plus une des exprs est vraie. */
+    /**
+     * Expression vraie ssi au plus une des exprs est vraie.
+     */
     private BoolExpr atMostOne(BoolExpr... exprs) {
         ArrayList<BoolExpr> conjuncts = new ArrayList<>();
 
@@ -173,7 +199,9 @@ public class Chiffres {
         return context.mkAnd(conjuncts.stream().toArray(BoolExpr[]::new));
     }
 
-    /** Convertit un int java en valeur symbolique bitvector Z3. */
+    /**
+     * Convertit un int java en valeur symbolique bitvector Z3.
+     */
     private BitVecNum toBvNum(int num) {
         if (noOverflows) {
             BigInteger bigNum = new BigInteger(String.valueOf(num));
@@ -182,8 +210,8 @@ public class Chiffres {
                 return context.mkBV(num, bvBits);
             else
                 throw new Error("le numeral " + String.valueOf(num) +
-                                " dépasse la capacité des bitvectors signés de taille " +
-                                String.valueOf(bvBits));
+                        " dépasse la capacité des bitvectors signés de taille " +
+                        String.valueOf(bvBits));
         } else {
             return context.mkBV(num, bvBits);
         }
@@ -195,7 +223,7 @@ public class Chiffres {
      */
     private BoolExpr pushNumVar(int step, int num) {
         return boolConst("push_" + String.valueOf(num) + "@" +
-                         String.valueOf(step));
+                String.valueOf(step));
     }
 
     /**
@@ -234,7 +262,9 @@ public class Chiffres {
         return boolConst("div@" + String.valueOf(step));
     }
 
-    /** Variable d'état représentant la pile au pas d'exécution "step". */
+    /**
+     * Variable d'état représentant la pile au pas d'exécution "step".
+     */
     private ArrayExpr stackStateVar(int step) {
         return arrayConst("stack@" + String.valueOf(step));
     }
@@ -252,8 +282,24 @@ public class Chiffres {
      * step + 1 sont liés par une action "push(num)".
      */
     private BoolExpr pushNumFormula(int step, int num) {
-        System.out.println("Attention : la méthode pushNumFormula n'est pas définie !");
-        return context.mkTrue();
+        ArrayExpr pile = stackStateVar(step);
+        ArrayExpr pileSucc = stackStateVar(step + 1);
+
+        IntExpr idxPile = idxStateVar(step);
+        IntExpr idxPileSucc = idxStateVar(step + 1);
+
+        BoolExpr valeurSucc = context.mkEq(pileSucc, context.mkStore(pile, idxPile, toBvNum(num)));
+        BoolExpr stepSucc = context.mkEq(idxPileSucc, context.mkAdd(context.mkInt(1), idxPile));
+
+        BoolExpr unicite = context.mkTrue();
+        for (int i = 0; i <= step; i++) {
+            unicite = context.mkAnd(
+                    context.mkNot(
+                            context.mkEq(toBvNum(num), (BitVecExpr) context.mkSelect(pile, idxStateVar(i)))),
+                    unicite);
+        }
+
+        return context.mkAnd(valeurSucc, unicite, stepSucc);
     }
 
 
@@ -283,8 +329,25 @@ public class Chiffres {
 
 
     private BoolExpr actionFormula(int step, ActionVar actVar, ActionPrecondition precond, ActionResult opRes) {
-        System.out.println("Attention : la méthode actionFormula n'est pas définie !");
-        return context.mkTrue();
+        ArrayExpr pile = stackStateVar(step);
+        ArrayExpr pileSucc = stackStateVar(step + 1);
+
+        IntExpr idxPile = idxStateVar(step);
+        IntExpr idxPileSucc = idxStateVar(step + 1);
+
+        BoolExpr stepSucc = context.mkEq(idxPileSucc, context.mkAdd(context.mkInt(-1), idxPile));
+
+        BitVecExpr right = (BitVecExpr) context.mkSelect(pile, idxPile);
+        BitVecExpr left = (BitVecExpr) context.mkSelect(pile, context.mkAdd(idxPile, context.mkInt(-1)));
+        BitVecExpr result = (BitVecExpr) context.mkSelect(pileSucc, idxPileSucc);
+
+        BoolExpr action = actVar.get(step);
+        BoolExpr preCond = precond.get(step, left, right);
+        BitVecExpr postCond = opRes.get(step, left, right);
+
+        BoolExpr coherenceRes = context.mkEq(result, postCond);
+
+        return context.mkImplies(context.mkAnd(preCond, action), context.mkAnd(coherenceRes, stepSucc));
     }
 
     /**
@@ -292,8 +355,15 @@ public class Chiffres {
      * step + 1 sont liés par une action "addition".
      */
     private BoolExpr addFormula(int step) {
-        System.out.println("Attention : la méthode addFormula n'est pas définie !");
-        return context.mkTrue();
+        ActionVar add = this::addVar;
+        ActionPrecondition precond = (s, e1, e2) -> {
+            return context.mkTrue();
+        };
+        ActionResult opRes = (s, e1, e2) -> {
+            return context.mkBVAdd(e1, e2);
+        };
+
+        return actionFormula(step, add, precond, opRes);
     }
 
     /**
@@ -301,8 +371,15 @@ public class Chiffres {
      * step + 1 sont liés par une action "soustraction".
      */
     private BoolExpr subFormula(int step) {
-        System.out.println("Attention : la méthode subFormula n'est pas définie !");
-        return context.mkTrue();
+        ActionVar sub = this::subVar;
+        ActionPrecondition precond = (s, e1, e2) -> {
+            return context.mkTrue();
+        };
+        ActionResult opRes = (s, e1, e2) -> {
+            return context.mkBVSub(e1, e2);
+        };
+
+        return actionFormula(step, sub, precond, opRes);
     }
 
     /**
@@ -310,8 +387,15 @@ public class Chiffres {
      * step + 1 sont liés par une action "multiplication".
      */
     private BoolExpr mulFormula(int step) {
-        System.out.println("Attention : la méthode mulFormula n'est pas définie !");
-        return context.mkTrue();
+        ActionVar mul = this::mulVar;
+        ActionPrecondition precond = (s, e1, e2) -> {
+            return context.mkTrue();
+        };
+        ActionResult opRes = (s, e1, e2) -> {
+            return context.mkBVMul(e1, e2);
+        };
+
+        return actionFormula(step, mul, precond, opRes);
     }
 
     /**
@@ -319,8 +403,15 @@ public class Chiffres {
      * step + 1 sont liés par une action "division".
      */
     private BoolExpr divFormula(int step) {
-        System.out.println("Attention : la méthode divFormula n'est pas définie !");
-        return context.mkTrue();
+        ActionVar div = this::divVar;
+        ActionPrecondition precond = (s, e1, e2) -> {
+            return context.mkTrue();
+        };
+        ActionResult opRes = (s, e1, e2) -> {
+            return context.mkBVSDiv(e1, e2);
+        };
+
+        return actionFormula(step, div, precond, opRes);
     }
 
     /**
@@ -347,8 +438,7 @@ public class Chiffres {
      * une transition d'action.
      */
     private BoolExpr transitionFormula(int step) {
-        System.out.println("Attention : la méthode transitionFormula n'est pas définie !");
-        return context.mkTrue();
+        return exactlyOne(allActions(step));
     }
 
     /**
@@ -356,8 +446,12 @@ public class Chiffres {
      * toutes les cellules à zéro et dessus de pile à zero).
      */
     private BoolExpr initialStateFormula() {
-        System.out.println("Attention : la méthode initialStateFormula n'est pas définie !");
-        return context.mkTrue();
+        ArrayExpr pile = stackStateVar(0);
+        IntExpr idxPile = idxStateVar(0);
+        BitVecExpr valeur = (BitVecExpr) context.mkSelect(pile, idxPile);
+        BoolExpr pileInit = context.mkEq(valeur, context.mkInt(0));
+        BoolExpr idxInit = context.mkEq(idxPile, context.mkInt(0));
+        return context.mkAnd(pileInit, idxInit);
     }
 
     /**
@@ -365,8 +459,15 @@ public class Chiffres {
      * à la valeur cible au pas "step".
      */
     private BoolExpr finalStateFormula(int step) {
-        System.out.println("Attention : la méthode finalStateFormula n'est pas définie !");
-        return context.mkTrue();
+        ArrayExpr pile = stackStateVar(step);
+        IntExpr idxPile = idxStateVar(step);
+        BitVecExpr valeur = (BitVecExpr) context.mkSelect(pile, idxPile);
+
+        BoolExpr valEqTarget = context.mkEq(valeur, context.mkInt(target));
+
+        BoolExpr idxEq0 = context.mkEq(idxPile, context.mkInt(0));
+
+        return context.mkAnd(valEqTarget, idxEq0);
     }
 
     /**
@@ -391,9 +492,9 @@ public class Chiffres {
             solver.setParameters(p);
 
             System.out.println("\n\nsolveExact with timeout " +
-                               String.valueOf(timeout));
+                    String.valueOf(timeout));
         } else {
-            System.out.println("\n\nsolveExact without timeout" );
+            System.out.println("\n\nsolveExact without timeout");
         }
 
         System.out.println("Attention : la méthode solveExact n'est pas définie !");
@@ -468,16 +569,18 @@ public class Chiffres {
         return s;
     }
 
-    /** Affiche le contenu de la pile en ASCII sur sdtout. */
+    /**
+     * Affiche le contenu de la pile en ASCII sur sdtout.
+     */
     private void printStackAtStep(Model m, int step) {
         for (int idx = 0; idx <= maxNofSteps; idx++) {
             BitVecExpr resbv =
-                (BitVecExpr) context.mkSelect(stackStateVar(step),
-                                              context.mkInt(idx));
+                    (BitVecExpr) context.mkSelect(stackStateVar(step),
+                            context.mkInt(idx));
             IntExpr resi = context.mkBV2Int(resbv, true);
 
             if (m.eval(context.mkEq(idxStateVar(step),
-                                    context.mkInt(idx)), true).isTrue()) {
+                    context.mkInt(idx)), true).isTrue()) {
                 System.out.print(" <| ");
             } else {
                 System.out.print(" | ");

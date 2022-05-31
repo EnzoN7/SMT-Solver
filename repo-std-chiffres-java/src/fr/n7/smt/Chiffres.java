@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-
 import com.microsoft.z3.*;
 
 /**
@@ -288,16 +287,12 @@ public class Chiffres {
         IntExpr idxPile = idxStateVar(step);
         IntExpr idxPileSucc = idxStateVar(step + 1);
 
-        BoolExpr valeurSucc = context.mkEq(pileSucc, context.mkStore(pile, idxPile, toBvNum(num)));
+        BoolExpr valeurSucc = context.mkEq(pileSucc, context.mkStore(pile, idxPile, context.mkBV(num, bvBits)));
         BoolExpr stepSucc = context.mkEq(idxPileSucc, context.mkAdd(context.mkInt(1), idxPile));
 
         BoolExpr unicite = context.mkTrue();
-        for (int i = 0; i <= step; i++) {
-            unicite = context.mkAnd(
-                    context.mkNot(
-                            context.mkEq(toBvNum(num), (BitVecExpr) context.mkSelect(pile, idxStateVar(i)))),
-                    unicite);
-        }
+        for (int i = 0; i <= step; i++)
+            unicite = context.mkAnd(unicite, context.mkNot(pushNumVar(i, num)));
 
         return context.mkAnd(valeurSucc, unicite, stepSucc);
     }
@@ -356,12 +351,8 @@ public class Chiffres {
      */
     private BoolExpr addFormula(int step) {
         ActionVar add = this::addVar;
-        ActionPrecondition precond = (s, e1, e2) -> {
-            return context.mkTrue();
-        };
-        ActionResult opRes = (s, e1, e2) -> {
-            return context.mkBVAdd(e1, e2);
-        };
+        ActionPrecondition precond = (s, e1, e2) -> context.mkTrue();
+        ActionResult opRes = (s, e1, e2) -> context.mkBVAdd(e1, e2);
 
         return actionFormula(step, add, precond, opRes);
     }
@@ -372,12 +363,8 @@ public class Chiffres {
      */
     private BoolExpr subFormula(int step) {
         ActionVar sub = this::subVar;
-        ActionPrecondition precond = (s, e1, e2) -> {
-            return context.mkTrue();
-        };
-        ActionResult opRes = (s, e1, e2) -> {
-            return context.mkBVSub(e1, e2);
-        };
+        ActionPrecondition precond = (s, e1, e2) -> context.mkTrue();
+        ActionResult opRes = (s, e1, e2) -> context.mkBVSub(e1, e2);
 
         return actionFormula(step, sub, precond, opRes);
     }
@@ -388,12 +375,8 @@ public class Chiffres {
      */
     private BoolExpr mulFormula(int step) {
         ActionVar mul = this::mulVar;
-        ActionPrecondition precond = (s, e1, e2) -> {
-            return context.mkTrue();
-        };
-        ActionResult opRes = (s, e1, e2) -> {
-            return context.mkBVMul(e1, e2);
-        };
+        ActionPrecondition precond = (s, e1, e2) -> context.mkTrue();
+        ActionResult opRes = (s, e1, e2) -> context.mkBVMul(e1, e2);
 
         return actionFormula(step, mul, precond, opRes);
     }
@@ -404,12 +387,8 @@ public class Chiffres {
      */
     private BoolExpr divFormula(int step) {
         ActionVar div = this::divVar;
-        ActionPrecondition precond = (s, e1, e2) -> {
-            return context.mkTrue();
-        };
-        ActionResult opRes = (s, e1, e2) -> {
-            return context.mkBVSDiv(e1, e2);
-        };
+        ActionPrecondition precond = (s, e1, e2) -> context.mkTrue();
+        ActionResult opRes = (s, e1, e2) -> context.mkBVSDiv(e1, e2);
 
         return actionFormula(step, div, precond, opRes);
     }
@@ -449,8 +428,9 @@ public class Chiffres {
         ArrayExpr pile = stackStateVar(0);
         IntExpr idxPile = idxStateVar(0);
         BitVecExpr valeur = (BitVecExpr) context.mkSelect(pile, idxPile);
-        BoolExpr pileInit = context.mkEq(valeur, context.mkInt(0));
-        BoolExpr idxInit = context.mkEq(idxPile, context.mkInt(0));
+
+        BoolExpr pileInit = context.mkEq(valeur, context.mkBV(0, bvBits));
+        BoolExpr idxInit = context.mkEq(idxPile, context.mkInt(1));
         return context.mkAnd(pileInit, idxInit);
     }
 
@@ -463,11 +443,9 @@ public class Chiffres {
         IntExpr idxPile = idxStateVar(step);
         BitVecExpr valeur = (BitVecExpr) context.mkSelect(pile, idxPile);
 
-        BoolExpr valEqTarget = context.mkEq(valeur, context.mkInt(target));
-
-        BoolExpr idxEq0 = context.mkEq(idxPile, context.mkInt(0));
-
-        return context.mkAnd(valEqTarget, idxEq0);
+        BoolExpr valEqTarget = context.mkEq(valeur, context.mkBV(target, bvBits));
+        BoolExpr idxEq1 = context.mkEq(idxPile, context.mkInt(1));
+        return context.mkAnd(valEqTarget, idxEq1);
     }
 
     /**
@@ -483,9 +461,9 @@ public class Chiffres {
      * pour toutes les itérations, on retourne le status UNSAT.
      */
     private Status solveExact(int timeout) {
-        Solver solver = context.mkSolver();
-        solver.add(initialStateFormula());
+        long startTime = System.currentTimeMillis();
 
+        Solver solver = context.mkSolver();
         if (timeout > 0) {
             Params p = context.mkParams();
             p.add("timeout", timeout);
@@ -497,8 +475,40 @@ public class Chiffres {
             System.out.println("\n\nsolveExact without timeout");
         }
 
-        System.out.println("Attention : la méthode solveExact n'est pas définie !");
-        return Status.UNKNOWN;
+        // ETAPE 0 : I(S0) ET P(S0)
+        Status status = Status.UNSATISFIABLE;
+        int step = 0;
+
+        solver.add(initialStateFormula());
+
+        solver.push();
+        solver.add(finalStateFormula(step));
+        if (solver.check() == Status.SATISFIABLE)
+            status = Status.SATISFIABLE;
+        else
+            solver.pop();
+
+        // ETAPES 1..*
+        while (status == Status.UNSATISFIABLE) {
+            step++;
+            solver.add(transitionFormula(step - 1));
+
+            solver.push();
+            solver.add(finalStateFormula(step));
+
+            if (solver.check() == Status.SATISFIABLE) {
+                status = Status.SATISFIABLE;
+                System.out.println("PROBLEM is SAT");
+                printModel(solver.getModel(), step);
+
+            } else if (timeout > 0 && System.currentTimeMillis() - startTime >= timeout) {
+                System.out.println("PROBLEM is UNSAT");
+                break;
+
+            } else
+                solver.pop();
+        }
+        return status;
     }
 
     /**

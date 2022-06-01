@@ -287,14 +287,14 @@ public class Chiffres {
         IntExpr idxPile = idxStateVar(step);
         IntExpr idxPileSucc = idxStateVar(step + 1);
 
-        BoolExpr valeurSucc = context.mkEq(pileSucc, context.mkStore(pile, idxPile, context.mkBV(num, bvBits)));
+        BoolExpr valeurSucc = context.mkEq(pileSucc, context.mkStore(pile, idxPile, toBvNum(num)));
         BoolExpr stepSucc = context.mkEq(idxPileSucc, context.mkAdd(context.mkInt(1), idxPile));
 
         BoolExpr unicite = context.mkTrue();
-        for (int i = 0; i <= step; i++)
+        for (int i = 0; i < step; i++)
             unicite = context.mkAnd(unicite, context.mkNot(pushNumVar(i, num)));
 
-        return context.mkAnd(valeurSucc, unicite, stepSucc);
+        return context.mkImplies(pushNumVar(step, num) , context.mkAnd(valeurSucc, unicite, stepSucc));
     }
 
 
@@ -330,19 +330,21 @@ public class Chiffres {
         IntExpr idxPile = idxStateVar(step);
         IntExpr idxPileSucc = idxStateVar(step + 1);
 
-        BoolExpr stepSucc = context.mkEq(idxPileSucc, context.mkAdd(context.mkInt(-1), idxPile));
+        BoolExpr stepSucc = context.mkEq(idxPileSucc, context.mkSub(idxPile, context.mkInt(1)));
 
-        BitVecExpr right = (BitVecExpr) context.mkSelect(pile, idxPile);
-        BitVecExpr left = (BitVecExpr) context.mkSelect(pile, context.mkAdd(idxPile, context.mkInt(-1)));
-        BitVecExpr result = (BitVecExpr) context.mkSelect(pileSucc, idxPileSucc);
+        BitVecExpr right = (BitVecExpr) context.mkSelect(pile, context.mkSub(idxPile, context.mkInt(1)));
+        BitVecExpr left = (BitVecExpr) context.mkSelect(pile, context.mkSub(idxPile, context.mkInt(2)));
 
         BoolExpr action = actVar.get(step);
         BoolExpr preCond = precond.get(step, left, right);
-        BitVecExpr postCond = opRes.get(step, left, right);
+        BitVecExpr res = opRes.get(step, left, right);
 
-        BoolExpr coherenceRes = context.mkEq(result, postCond);
+        ArrayExpr pileSuccRes = context.mkStore(pile, context.mkSub(idxPile, context.mkInt(2)), res);
+        BoolExpr coherenceRes = context.mkEq(pileSuccRes, pileSucc);
 
-        return context.mkImplies(context.mkAnd(preCond, action), context.mkAnd(coherenceRes, stepSucc));
+        BoolExpr actionPossible = context.mkGe(idxPile, context.mkInt(2));
+
+        return context.mkImplies(context.mkAnd(preCond, action), context.mkAnd(actionPossible, coherenceRes, stepSucc));
     }
 
     /**
@@ -417,7 +419,18 @@ public class Chiffres {
      * une transition d'action.
      */
     private BoolExpr transitionFormula(int step) {
-        return exactlyOne(allActions(step));
+        BoolExpr boolExpr = context.mkTrue();
+
+        for (int num : nums) {
+            boolExpr = context.mkAnd(boolExpr, pushNumFormula(step, num));
+        }
+
+        boolExpr = context.mkAnd(boolExpr, mulFormula(step));
+        boolExpr = context.mkAnd(boolExpr, addFormula(step));
+        boolExpr = context.mkAnd(boolExpr, subFormula(step));
+        boolExpr = context.mkAnd(boolExpr, divFormula(step));
+
+        return context.mkAnd(boolExpr, exactlyOne(allActions(step)));
     }
 
     /**
@@ -427,10 +440,8 @@ public class Chiffres {
     private BoolExpr initialStateFormula() {
         ArrayExpr pile = stackStateVar(0);
         IntExpr idxPile = idxStateVar(0);
-        BitVecExpr valeur = (BitVecExpr) context.mkSelect(pile, idxPile);
-
-        BoolExpr pileInit = context.mkEq(valeur, context.mkBV(0, bvBits));
-        BoolExpr idxInit = context.mkEq(idxPile, context.mkInt(1));
+        BoolExpr pileInit = context.mkEq(pile, context.mkConstArray(intSort, toBvNum(0)));
+        BoolExpr idxInit = context.mkEq(idxPile, context.mkInt(0));
         return context.mkAnd(pileInit, idxInit);
     }
 
@@ -441,9 +452,8 @@ public class Chiffres {
     private BoolExpr finalStateFormula(int step) {
         ArrayExpr pile = stackStateVar(step);
         IntExpr idxPile = idxStateVar(step);
-        BitVecExpr valeur = (BitVecExpr) context.mkSelect(pile, idxPile);
-
-        BoolExpr valEqTarget = context.mkEq(valeur, context.mkBV(target, bvBits));
+        BitVecExpr valeur = (BitVecExpr) context.mkSelect(pile, context.mkInt(0));
+        BoolExpr valEqTarget = context.mkEq(valeur, toBvNum(target));
         BoolExpr idxEq1 = context.mkEq(idxPile, context.mkInt(1));
         return context.mkAnd(valEqTarget, idxEq1);
     }
@@ -502,7 +512,7 @@ public class Chiffres {
                 printModel(solver.getModel(), step);
 
             } else if (timeout > 0 && System.currentTimeMillis() - startTime >= timeout) {
-                System.out.println("PROBLEM is UNSAT");
+                System.out.println("TIMEOUT > 10s\nPROBLEM is UNSAT");
                 break;
 
             } else

@@ -472,8 +472,8 @@ public class Chiffres {
      */
     private Status solveExact(int timeout) {
         long startTime = System.currentTimeMillis();
-
         Solver solver = context.mkSolver();
+
         if (timeout > 0) {
             Params p = context.mkParams();
             p.add("timeout", timeout);
@@ -485,7 +485,7 @@ public class Chiffres {
             System.out.println("\n\nsolveExact without timeout");
         }
 
-        // ETAPE 0 : I(S0) ET P(S0)
+        // ETAPE 0
         Status status = Status.UNSATISFIABLE;
         int step = 0;
 
@@ -510,15 +510,16 @@ public class Chiffres {
                 status = Status.SATISFIABLE;
                 System.out.println("PROBLEM is SAT");
                 printModel(solver.getModel(), step);
-
             } else if (timeout > 0 && System.currentTimeMillis() - startTime >= timeout) {
-                System.out.println("TIMEOUT > 10s\nPROBLEM is UNSAT");
+                System.out.println("PROBLEM is UNSAT\nFlag : Timeout dépassé");
                 break;
-
+            } else if (step > maxNofSteps) {
+                System.out.println("PROBLEM is UNSAT\nFlag : Nombre d'étapes trop grand");
+                break;
             } else
                 solver.pop();
-        }
-        return status;
+            }
+            return status;
     }
 
     /**

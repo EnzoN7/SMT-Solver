@@ -551,7 +551,7 @@ public class Chiffres {
             return context.mkBVSub(toBvNum(target), valeur);
     }
 
-    Optimize constructOptimize(int timeout, int step) {
+    Optimize resetSolver(int timeout, int step) {
         Optimize solver = context.mkOptimize();
         solver.MkMinimize(finalStateApproxCriterion(step));
         if (timeout > 0) {
@@ -580,12 +580,7 @@ public class Chiffres {
         List<BoolExpr> mem = new ArrayList<>();
         int step = 0;
 
-        Optimize solver = constructOptimize(timeout, step);
-        if (timeout > 0) {
-            System.out.println("\n\nsolveApprox with timeout " + String.valueOf(timeout));
-        } else {
-            System.out.println("\n\nsolveApprox without timeout");
-        }
+        Optimize solver = resetSolver(timeout, step);
 
         // ETAPE 0
         Status status = Status.UNSATISFIABLE;
@@ -601,7 +596,7 @@ public class Chiffres {
         } else if (solver.Check() == Status.UNKNOWN)
             return Status.UNKNOWN;
 
-        solver = constructOptimize(timeout, step);
+        solver = resetSolver(timeout, step);
 
         // ETAPE 1..*
         while (step < maxNofSteps) {
@@ -625,7 +620,7 @@ public class Chiffres {
                 System.out.println("PROBLEM is UNKNOWN");
                 break;
             }
-            solver = constructOptimize(timeout, step);
+            solver = resetSolver(timeout, step);
         }
         return status;
     }

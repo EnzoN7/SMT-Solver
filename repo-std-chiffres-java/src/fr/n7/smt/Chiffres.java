@@ -4,6 +4,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+
 import com.microsoft.z3.*;
 
 /**
@@ -478,9 +480,7 @@ public class Chiffres {
             Params p = context.mkParams();
             p.add("timeout", timeout);
             solver.setParameters(p);
-
-            System.out.println("\n\nsolveExact with timeout " +
-                    String.valueOf(timeout));
+            System.out.println("\n\nsolveExact with timeout " + String.valueOf(timeout));
         } else {
             System.out.println("\n\nsolveExact without timeout");
         }
@@ -493,8 +493,12 @@ public class Chiffres {
 
         solver.push();
         solver.add(finalStateFormula(step));
-        if (solver.check() == Status.SATISFIABLE)
+        if (solver.check() == Status.SATISFIABLE) {
             status = Status.SATISFIABLE;
+            System.out.println("PROBLEM is SAT");
+            printModel(solver.getModel(), step);
+        } else if (solver.check() == Status.UNKNOWN)
+            status = Status.UNKNOWN;
         else
             solver.pop();
 
@@ -516,6 +520,10 @@ public class Chiffres {
             } else if (step > maxNofSteps) {
                 System.out.println("PROBLEM is UNSAT\nFlag : Nombre d'étapes trop grand");
                 break;
+            } else if (solver.check() == Status.UNKNOWN) {
+                status = Status.UNKNOWN;
+                System.out.println("PROBLEM is UNKNOWN");
+                break;
             } else
                 solver.pop();
             }
@@ -527,8 +535,7 @@ public class Chiffres {
      * "step".
      */
     private BoolExpr finalStateApproxFormula(int step) {
-        System.out.println("Attention : la méthode finalStateApproxFormula n'est pas définie !");
-        return context.mkTrue();
+        return context.mkNot(finalStateFormula(step));
     }
 
     /**
@@ -536,8 +543,23 @@ public class Chiffres {
      * du dessus de la pile et la valeur cible au pas "step".
      */
     private BitVecExpr finalStateApproxCriterion(int step) {
-        System.out.println("Attention : la méthode finalStateApproxCriterion n'est pas définie !");
-        return this.toBvNum(0);
+        ArrayExpr pile = stackStateVar(step);
+        BitVecExpr valeur = (BitVecExpr) context.mkSelect(pile, context.mkInt(0));
+        if (context.mkBVSGE(valeur, toBvNum(target)).isTrue())
+            return context.mkBVSub(valeur, toBvNum(target));
+        else
+            return context.mkBVSub(toBvNum(target), valeur);
+    }
+
+    Optimize constructOptimize(int timeout, int step) {
+        Optimize solver = context.mkOptimize();
+        solver.MkMinimize(finalStateApproxCriterion(step));
+        if (timeout > 0) {
+            Params p = context.mkParams();
+            p.add("timeout", timeout);
+            solver.setParameters(p);
+        }
+        return solver;
     }
 
     /**
@@ -554,24 +576,58 @@ public class Chiffres {
      * pour toutes les itérations, on retourne le status SAT.
      */
     private Status solveApprox(int timeout) {
-        System.out.println("Attention : la méthode solveApprox n'est pas définie !");
+        long startTime = System.currentTimeMillis();
+        List<BoolExpr> mem = new ArrayList<>();
+        int step = 0;
 
-        // ce solver n'est pas incrémental, il faut le recréer à
-        // chaque nouvelle itération du BMC.
-        // utiliser les méthodes suivantes sur le solveur (attention
-        // aux majuscules !) :
-        // - Add pour ajouter une formule
-        // - MkMinimize pour ajouter un critère à optimiser
-        // - Check pour résoudre
-        Optimize solver = context.mkOptimize();
-
+        Optimize solver = constructOptimize(timeout, step);
         if (timeout > 0) {
-            Params p = context.mkParams();
-            p.add("timeout", timeout);
-            solver.setParameters(p);
+            System.out.println("\n\nsolveApprox with timeout " + String.valueOf(timeout));
+        } else {
+            System.out.println("\n\nsolveApprox without timeout");
         }
 
-        return Status.UNKNOWN;
+        // ETAPE 0
+        Status status = Status.UNSATISFIABLE;
+
+        solver.Add(initialStateFormula());
+        mem.add(initialStateFormula());
+
+        solver.Add(finalStateFormula(step));
+        if (solver.Check() == Status.SATISFIABLE) {
+            status = Status.SATISFIABLE;
+            System.out.println("Step n°" + step);
+            printModel(solver.getModel(), step);
+        } else if (solver.Check() == Status.UNKNOWN)
+            return Status.UNKNOWN;
+
+        solver = constructOptimize(timeout, step);
+
+        // ETAPE 1..*
+        while (step < maxNofSteps) {
+            step++;
+            mem.add(transitionFormula(step - 1));
+
+            for (BoolExpr b : mem)
+                solver.Add(b);
+
+            solver.Add(finalStateApproxFormula(step));
+
+            if (solver.Check() == Status.SATISFIABLE) {
+                status = Status.SATISFIABLE;
+                System.out.println("\n|Step n°" + step + "|");
+                printModel(solver.getModel(), step);
+            } else if (timeout > 0 && System.currentTimeMillis() - startTime >= timeout) {
+                System.out.println("Timeout dépassé");
+                break;
+            } else if (solver.Check() == Status.UNKNOWN) {
+                status = Status.UNKNOWN;
+                System.out.println("PROBLEM is UNKNOWN");
+                break;
+            }
+            solver = constructOptimize(timeout, step);
+        }
+        return status;
     }
 
     /**

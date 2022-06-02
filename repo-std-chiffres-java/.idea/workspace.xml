@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="530d985e-71f9-463e-97a0-435733b1a9ac" name="Changes" comment="Approx" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="Make.Settings">
+    <option name="path" value="C:\Program Files (x86)\GnuWin32\bin\make.exe" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="29k5ClXFEf99xPUpZ3vSFFLHPXB" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/alex3/.jdks/openjdk-16/lib/com.microsoft.z3.jar&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.make&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\alex3\Documents\Repositories\SMT-Solver\repo-std-chiffres-java" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.Main">
+    <configuration name="Main" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="fr.n7.smt.Main" />
+      <module name="repo-std-chiffres-java" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="fr.n7.smt.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="compile" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="compile" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <configuration name="run" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="run" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Application.Main" />
+      <item itemvalue="Makefile Target.compile" />
+      <item itemvalue="Makefile Target.run" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Makefile Target.compile" />
+        <item itemvalue="Makefile Target.run" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="530d985e-71f9-463e-97a0-435733b1a9ac" name="Changes" comment="" />
+      <created>1653644117861</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1653644117861</updated>
+      <workItem from="1653644119535" duration="5838000" />
+      <workItem from="1653650207846" duration="199000" />
+      <workItem from="1653666317448" duration="555000" />
+      <workItem from="1653667159915" duration="830000" />
+      <workItem from="1653678950608" duration="7711000" />
+      <workItem from="1653901452644" duration="658000" />
+      <workItem from="1653988722975" duration="8928000" />
+      <workItem from="1654007957331" duration="53000" />
+      <workItem from="1654015928473" duration="675000" />
+      <workItem from="1654034934065" duration="94000" />
+      <workItem from="1654063188970" duration="5135000" />
+      <workItem from="1654068688183" duration="731000" />
+      <workItem from="1654085819144" duration="36000" />
+      <workItem from="1654099700570" duration="1220000" />
+      <workItem from="1654158323181" duration="1328000" />
+      <workItem from="1654160428553" duration="2189000" />
+      <workItem from="1654162644189" duration="2664000" />
+      <workItem from="1654179011087" duration="1745000" />
+      <workItem from="1654193099229" duration="225000" />
+      <workItem from="1654194076208" duration="145000" />
+    </task>
+    <task id="LOCAL-00001" summary="Corrections">
+      <created>1653686956775</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1653686956775</updated>
+    </task>
+    <task id="LOCAL-00002" summary="solveExact">
+      <created>1653997537845</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1653997537845</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Corrections">
+      <created>1654106207205</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1654106207205</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Approx">
+      <created>1654165314698</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1654165314698</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Approx">
+      <created>1654180463514</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1654180463514</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Approx">
+      <created>1654193205191</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1654193205191</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Init project" />
+    <MESSAGE value="solveExact" />
+    <MESSAGE value="Corrections" />
+    <MESSAGE value="Approx" />
+    <option name="LAST_COMMIT_MESSAGE" value="Approx" />
+  </component>
+</project>

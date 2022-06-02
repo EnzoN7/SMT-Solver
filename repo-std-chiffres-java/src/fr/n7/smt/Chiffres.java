@@ -591,7 +591,7 @@ public class Chiffres {
         solver.Add(finalStateFormula(step));
         if (solver.Check() == Status.SATISFIABLE) {
             status = Status.SATISFIABLE;
-            System.out.println("Step n°" + step);
+            System.out.println("|Step n°" + step + "|");
             printModel(solver.getModel(), step);
         } else if (solver.Check() == Status.UNKNOWN)
             return Status.UNKNOWN;
